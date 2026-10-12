@@ -3,12 +3,8 @@ export default function Footer() {
     <footer className="mt-16 border-t bg-base-100">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="font-bold">
-            বাজার দর
-          </h3>
-
           <p className="text-sm text-gray-500">
-            প্রয়োজনীয় পণ্যের দাম এক নজরে।
+            বাজার দর - প্রয়োজনীয় পণ্যের দাম এক নজরে।
           </p>
         </div>
 

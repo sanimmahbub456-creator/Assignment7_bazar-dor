@@ -1,3 +1,4 @@
+
 export interface Market {
   market: string;
   division: string;
@@ -25,4 +26,11 @@ export interface Product {
   lastMonth: number;
   change: PriceChange;
   markets: Market[];
+}
+
+export interface Category {
+  id: string;
+  slug: string;
+  nameBn: string;
+  icon: string;
 }

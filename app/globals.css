@@ -1,7 +1,374 @@
 @import "tailwindcss";
-
 @plugin "daisyui";
-@keyframes ticker {
+/* ================================
+   BAZAR DOR NAVBAR
+================================ */
+
+.site-header {
+  position: relative;
+  z-index: 30;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e8eee3;
+}
+
+.navbar-main {
+  width: 100%;
+  background: #ffffff;
+}
+
+.navbar-container {
+  width: min(1240px, calc(100% - 40px));
+  min-height: 94px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.brand-box {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 9px 16px 9px 10px;
+  color: #111111;
+  text-decoration: none;
+  background: #b7f34a;
+  border: 1px solid #a8e83e;
+  border-radius: 14px;
+  transition: box-shadow 180ms ease, transform 180ms ease;
+}
+
+.brand-box:hover {
+  box-shadow: 0 5px 18px rgb(69 105 23 / 13%);
+  transform: translateY(-1px);
+}
+
+.brand-logo {
+  display: flex;
+  width: 48px;
+  height: 48px;
+  flex: 0 0 48px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 11px;
+}
+
+.brand-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.brand-name {
+  color: #111111;
+  font-size: 23px;
+  font-weight: 900;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.brand-rice {
+  font-size: 20px;
+}
+
+.brand-date {
+  color: #30431b;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.navbar-actions,
+.logged-in-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.auth-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 19px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease;
+}
+
+.sign-in-button {
+  color: #26713a;
+  background: #ffffff;
+  border-color: #d8e7d4;
+}
+
+.sign-in-button:hover {
+  background: #f2f8ee;
+  border-color: #b7d9a9;
+}
+
+.sign-up-button {
+  color: #111111;
+  background: #b7f34a;
+  border-color: #b7f34a;
+}
+
+.sign-up-button:hover {
+  background: #a8e83e;
+  border-color: #a8e83e;
+}
+
+.sign-out-button {
+  color: #26713a;
+  background: #ffffff;
+  border-color: #d8e7d4;
+}
+
+.sign-out-button:hover {
+  background: #f2f8ee;
+}
+
+.user-greeting {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 220px;
+  color: #253324;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.user-avatar {
+  display: flex;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  align-items: center;
+  justify-content: center;
+  background: #eff8e8;
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+.user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-loading {
+  color: #64705f;
+  font-size: 13px;
+}
+
+/* ================================
+   CATEGORY NAVIGATION
+================================ */
+
+.category-nav {
+  width: 100%;
+  border-top: 1px solid #edf1e9;
+  background: #ffffff;
+}
+
+.category-nav-inner {
+  display: flex;
+  width: min(1240px, calc(100% - 40px));
+  min-height: 56px;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.category-nav-inner::-webkit-scrollbar {
+  display: none;
+}
+
+.category-link {
+  display: inline-flex;
+  min-height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 0 14px;
+  color: #374237;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.category-link:hover {
+  color: #225d2c;
+  background: #f1f8e9;
+}
+
+.category-link-active {
+  color: #17250d;
+  background: #e8f8d3;
+  border-color: #c9eaa5;
+  font-weight: 800;
+}
+
+.category-icon {
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* ================================
+   INFINITE PRICE TICKER
+================================ */
+
+.price-ticker {
+  position: relative;
+  z-index: 20;
+  width: 100%;
+  overflow: hidden;
+  background: #fbfff6;
+  border-top: 2px solid #80c934;
+  border-bottom: 1px solid #e5eddc;
+}
+
+.ticker-container {
+  display: flex;
+  min-height: 45px;
+  align-items: center;
+}
+
+.ticker-label {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  min-height: 45px;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 0 18px;
+  color: #183b17;
+  background: #e7f8d4;
+  border-right: 1px solid #d6eac3;
+  font-size: 13px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.ticker-viewport {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: bazar-ticker-scroll 55s linear infinite;
+  will-change: transform;
+}
+
+.ticker-viewport:hover .ticker-track {
+  animation-play-state: paused;
+}
+
+.ticker-group {
+  display: flex;
+  width: max-content;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.ticker-item {
+  display: inline-flex;
+  min-height: 45px;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+  padding: 0 16px;
+  color: #263327;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.ticker-product-icon {
+  font-size: 17px;
+}
+
+.ticker-product-name {
+  color: #374237;
+  font-weight: 700;
+}
+
+.ticker-price {
+  color: #162f19;
+  font-weight: 900;
+}
+
+.ticker-unit {
+  margin-left: 2px;
+  color: #66735e;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.ticker-change {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.ticker-up {
+  color: #d14343;
+}
+
+.ticker-down {
+  color: #218344;
+}
+
+.ticker-flat {
+  color: #77816f;
+}
+
+.ticker-separator {
+  margin-left: 7px;
+  color: #a9c78f;
+  font-size: 8px;
+}
+
+.ticker-loading {
+  padding: 0 16px;
+  color: #687263;
+  font-size: 12px;
+}
+
+@keyframes bazar-ticker-scroll {
   from {
     transform: translateX(0);
   }
@@ -11,21 +378,150 @@
   }
 }
 
-:root {
-  --background: #f8f7f3;
-  --foreground: #171717;
+/* ================================
+   RESPONSIVE DESIGN
+================================ */
+
+@media (max-width: 768px) {
+  .navbar-container {
+    width: calc(100% - 24px);
+    min-height: 80px;
+    gap: 10px;
+  }
+
+  .brand-box {
+    gap: 8px;
+    padding: 7px 10px 7px 7px;
+    border-radius: 11px;
+  }
+
+  .brand-logo {
+    width: 39px;
+    height: 39px;
+    flex-basis: 39px;
+  }
+
+  .brand-name {
+    font-size: 19px;
+  }
+
+  .brand-rice {
+    font-size: 16px;
+  }
+
+  .brand-date {
+    max-width: 180px;
+    overflow: hidden;
+    font-size: 9px;
+    text-overflow: ellipsis;
+  }
+
+  .navbar-actions,
+  .logged-in-actions {
+    gap: 6px;
+  }
+
+  .auth-button {
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: 8px;
+    font-size: 12px;
+  }
+
+  .user-greeting {
+    max-width: 115px;
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .user-avatar {
+    width: 30px;
+    height: 30px;
+    flex-basis: 30px;
+    font-size: 15px;
+  }
+
+  .category-nav-inner {
+    width: 100%;
+    min-height: 49px;
+    justify-content: flex-start;
+    gap: 5px;
+    padding: 0 12px;
+  }
+
+  .category-link {
+    min-height: 34px;
+    gap: 5px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .category-icon {
+    font-size: 15px;
+  }
+
+  .ticker-label {
+    min-height: 41px;
+    padding: 0 11px;
+    font-size: 11px;
+  }
+
+  .ticker-item {
+    min-height: 41px;
+    gap: 5px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+
+  .ticker-loading {
+    font-size: 11px;
+  }
 }
 
-html {
-  scroll-behavior: smooth;
+@media (max-width: 420px) {
+  .navbar-container {
+    width: calc(100% - 16px);
+    gap: 6px;
+  }
+
+  .brand-box {
+    gap: 6px;
+    padding-right: 7px;
+  }
+
+  .brand-logo {
+    width: 33px;
+    height: 33px;
+    flex-basis: 33px;
+  }
+
+  .brand-name {
+    font-size: 16px;
+  }
+
+  .brand-date {
+    max-width: 125px;
+    font-size: 8px;
+  }
+
+  .auth-button {
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .user-greeting {
+    max-width: 90px;
+  }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track {
+    animation: none;
+  }
 
-* {
-  box-sizing: border-box;
+  .brand-box,
+  .auth-button,
+  .category-link {
+    transition: none;
+  }
 }

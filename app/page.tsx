@@ -1,241 +1,230 @@
-import Link from "next/link";
+import { Suspense } from "react";
+import Image from "next/image";
+import { connection } from "next/server";
+
 import { getProducts } from "@/lib/api";
-import type { Product } from "@/types/product";
 import ProductCard from "@/components/products/ProductCard";
+import type { Product } from "@/types/product";
 
-export default async function HomePage() {
-  const products: Product[] = await getProducts();
+function bengaliDate() {
+  return new Intl.DateTimeFormat("bn-BD", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "Asia/Dhaka",
+  }).format(new Date());
+}
 
-  const risingProducts = [...products]
-    .filter((product) => product.change.dir === "up")
-    .sort((a, b) => b.change.pct - a.change.pct)
+function formatBengaliNumber(value: number) {
+  return new Intl.NumberFormat("bn-BD").format(value);
+}
+
+async function HomeContent() {
+  await connection();
+
+  let products: Product[] = [];
+  let apiError = false;
+
+  try {
+    products = await getProducts();
+  } catch (error) {
+    console.error("Homepage API error:", error);
+    apiError = true;
+  }
+
+  const allProducts = products.slice(0, 33);
+
+  const risingProducts = products
+    .filter((product) => product.change?.dir === "up")
+    .sort(
+      (a, b) =>
+        (b.change?.pct ?? 0) - (a.change?.pct ?? 0),
+    )
     .slice(0, 6);
 
-  const fallingProducts = [...products]
-    .filter((product) => product.change.dir === "down")
-    .sort((a, b) => a.change.pct - b.change.pct)
+  const fallingProducts = products
+    .filter((product) => product.change?.dir === "down")
+    .sort(
+      (a, b) =>
+        (b.change?.pct ?? 0) - (a.change?.pct ?? 0),
+    )
     .slice(0, 6);
 
   return (
-    <main>
-
-      {/* ================= HERO ================= */}
-      <section className="bg-base-200">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 py-16 md:grid-cols-2 md:py-24">
-
-          <div>
-            <p className="mb-4 text-sm font-bold uppercase tracking-widest text-primary">
-              আজকের বাজারদর
+    <main className="min-h-screen bg-base-100">
+      {/* Hero / Banner */}
+      <section className="overflow-hidden bg-base-200">
+        <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 sm:py-16 md:grid-cols-2 md:py-20">
+          <div className="order-2 md:order-1">
+            <p className="mb-3 text-sm font-semibold text-green-700">
+              {bengaliDate()}
             </p>
 
-            <h1 className="text-4xl font-black leading-tight md:text-6xl">
-              বাজারের দাম
-              <br />
-              জানুন এক নজরে।
+            <h1 className="max-w-2xl text-2xl font-black leading-tight tracking-tight text-base-content sm:text-2xl lg:text-3xl">
+              আজকের বাজারের দাম
+              <span className="mt-2 block text-primary">
+                এক নজরে
+              </span>
             </h1>
 
-            <p className="mt-6 max-w-xl text-base leading-7 text-gray-600 md:text-lg">
-              চাল, ডাল, তেল, সবজি, মাছ, মাংসসহ
-              প্রয়োজনীয় পণ্যের আজকের বাজারদর
-              সহজেই দেখুন।
+            <p className="mt-5 max-w-xl text-base leading-8 text-base-content/70 sm:text-lg">
+              চাল, ডাল, তেল, সবজি, মাছ, মাংস, ডিম ও মসলার দাম —
+              বাজারভিত্তিক বিস্তারিত, গড়, সর্বনিম্ন-সর্বাধিক এবং
+              দামের পরিবর্তন এক জায়গায়।
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#সব-পণ্য"
-                className="btn btn-primary"
-              >
-                সব পণ্য দেখুন
-              </a>
-
-              <Link
-                href="/category/chal"
-                className="btn btn-outline"
-              >
-                চালের দাম দেখুন
-              </Link>
-            </div>
+            <a
+              href="#সব-পণ্য"
+              className="btn btn-primary mt-8 min-h-12 px-7 text-base shadow-lg shadow-primary/20"
+            >
+              সব পণ্য দেখুন
+              <span aria-hidden="true">↓</span>
+            </a>
           </div>
 
-          {/* Hero visual */}
-          <div className="flex justify-center">
-            <div className="grid grid-cols-2 gap-4">
-
-              <div className="flex h-36 w-36 items-center justify-center rounded-3xl bg-base-100 text-7xl shadow-lg md:h-44 md:w-44">
-                🥬
-              </div>
-
-              <div className="mt-8 flex h-36 w-36 items-center justify-center rounded-3xl bg-base-100 text-7xl shadow-lg md:h-44 md:w-44">
-                🐟
-              </div>
-
-              <div className="-mt-4 flex h-36 w-36 items-center justify-center rounded-3xl bg-base-100 text-7xl shadow-lg md:h-44 md:w-44">
-                🍚
-              </div>
-
-              <div className="flex h-36 w-36 items-center justify-center rounded-3xl bg-base-100 text-7xl shadow-lg md:h-44 md:w-44">
-                🥚
-              </div>
-
-            </div>
-          </div>
-
-        </div>
-      </section>
-
-      {/* ================= RISING PRODUCTS ================= */}
-      <section className="mx-auto max-w-6xl px-4 py-16">
-
-        <div className="mb-8 flex items-end justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold text-gray-500">
-              আজকের পরিবর্তন
-            </p>
-
-            <h2 className="mt-1 text-3xl font-black">
-              আজ দাম বেড়েছে ▲
-            </h2>
-
-            <p className="mt-2 text-gray-500">
-              যেসব পণ্যের দাম আজ সবচেয়ে বেশি বেড়েছে
-            </p>
-          </div>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {risingProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
-          ))}
-        </div>
-
-      </section>
-
-      {/* ================= FALLING PRODUCTS ================= */}
-      <section className="bg-base-200">
-        <div className="mx-auto max-w-6xl px-4 py-16">
-
-          <div className="mb-8">
-            <p className="text-sm font-semibold text-gray-500">
-              আজকের পরিবর্তন
-            </p>
-
-            <h2 className="mt-1 text-3xl font-black">
-              আজ দাম কমেছে ▼
-            </h2>
-
-            <p className="mt-2 text-gray-500">
-              যেসব পণ্যের দাম আজ সবচেয়ে বেশি কমেছে
-            </p>
-          </div>
-
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {fallingProducts.map((product) => (
-              <ProductCard
-                key={product.id}
-                product={product}
+          <div className="order-1 md:order-2">
+            <div className="relative mx-auto aspect-[4/3] w-full max-w-xl overflow-hidden rounded-3xl bg-base-100 shadow-xl">
+              <Image
+                src="/bazar-hero.png"
+                alt="বাজার দর — নিত্যপ্রয়োজনীয় পণ্য ও বাজারের দৃশ্য"
+                fill
+                priority
+                sizes="(max-width: 350px) 80vw, 30vw"
+                className="object-cover"
               />
-            ))}
+            </div>
           </div>
-
         </div>
       </section>
 
-      {/* ================= ALL PRODUCTS ================= */}
-      <section
-        id="সব-পণ্য"
-        className="mx-auto max-w-6xl px-4 py-16"
-      >
+      {/* API Error Message */}
+      {apiError ? (
+        <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6">
+          <div className="rounded-2xl border border-error/30 bg-error/5 p-6">
+            <h2 className="text-xl font-bold">
+              পণ্যের তথ্য লোড করা যায়নি
+            </h2>
 
-        <div className="mb-8">
-          <p className="text-sm font-semibold text-primary">
-            পণ্যের তালিকা
-          </p>
-
-          <h2 className="mt-1 text-3xl font-black">
-            সব পণ্য
-          </h2>
-
-          <p className="mt-2 text-gray-500">
-            প্রয়োজনীয় সব পণ্যের আজকের বাজারদর একসাথে দেখুন।
-          </p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-            />
-          ))}
-        </div>
-
-      </section>
-
-      {/* ================= CATEGORY CTA ================= */}
-      <section className="bg-base-200">
-        <div className="mx-auto max-w-6xl px-4 py-16 text-center">
-
-          <h2 className="text-3xl font-black">
-            ক্যাটাগরি অনুযায়ী দাম দেখুন
-          </h2>
-
-          <p className="mx-auto mt-3 max-w-xl text-gray-500">
-            আপনার প্রয়োজনীয় পণ্যের ক্যাটাগরি নির্বাচন করে
-            দ্রুত বাজারদর দেখুন।
-          </p>
-
-          <div className="mt-8 flex flex-wrap justify-center gap-3">
-
-            <Link
-              href="/category/chal"
-              className="btn btn-outline"
-            >
-              🍚 চাল
-            </Link>
-
-            <Link
-              href="/category/dal"
-              className="btn btn-outline"
-            >
-              🫘 ডাল
-            </Link>
-
-            <Link
-              href="/category/tel"
-              className="btn btn-outline"
-            >
-              🫗 তেল
-            </Link>
-
-            <Link
-              href="/category/sobji"
-              className="btn btn-outline"
-            >
-              🥬 সবজি
-            </Link>
-
-            <Link
-              href="/category/mach"
-              className="btn btn-outline"
-            >
-              🐟 মাছ
-            </Link>
-
-            <Link
-              href="/category/mangsho"
-              className="btn btn-outline"
-            >
-              🍖 মাংস
-            </Link>
-
+            <p className="mt-2 text-base-content/70">
+              API সাময়িকভাবে unavailable হতে পারে। কিছুক্ষণ পরে
+              আবার চেষ্টা করুন।
+            </p>
           </div>
+        </section>
+      ) : (
+        <>
+          {/* Section A: Rising Prices */}
+          <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+            <div className="mb-6">
+              <h2 className="text-2xl font-black md:text-3xl">
+                আজ দাম বেড়েছে{" "}
+                <span className="text-success">▲</span>
+              </h2>
 
-        </div>
-      </section>
+              <p className="mt-2 text-sm text-base-content/60">
+                আজ যেসব পণ্যের দাম সবচেয়ে বেশি বেড়েছে
+              </p>
+            </div>
 
+            {risingProducts.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                {risingProducts.map((product) => (
+                  <ProductCard
+                    key={product.slug}
+                    product={product}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl bg-base-200 p-5 text-base-content/60">
+                দাম বেড়েছে এমন পণ্যের তথ্য পাওয়া যায়নি।
+              </p>
+            )}
+          </section>
+
+          {/* Section B: Falling Prices */}
+          <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10">
+            <div className="mb-6">
+              <h2 className="text-2xl font-black md:text-3xl">
+                আজ দাম কমেছে{" "}
+                <span className="text-error">▼</span>
+              </h2>
+
+              <p className="mt-2 text-sm text-base-content/60">
+                আজ যেসব পণ্যের দাম সবচেয়ে বেশি কমেছে
+              </p>
+            </div>
+
+            {fallingProducts.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                {fallingProducts.map((product) => (
+                  <ProductCard
+                    key={product.slug}
+                    product={product}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl bg-base-200 p-5 text-base-content/60">
+                দাম কমেছে এমন পণ্যের তথ্য পাওয়া যায়নি।
+              </p>
+            )}
+          </section>
+
+          {/* Section C: All Products */}
+          <section
+            id="সব-পণ্য"
+            className="mx-auto max-w-7xl scroll-mt-24 px-4 py-8 sm:px-6 sm:py-10"
+          >
+            <div className="mb-6">
+              <h2 className="text-2xl font-black md:text-3xl">
+                সব পণ্য
+                <span className="ml-2 text-base font-semibold text-base-content/60">
+                  ({formatBengaliNumber(allProducts.length)}টি পণ্য)
+                </span>
+              </h2>
+
+              <p className="mt-2 text-sm text-base-content/60">
+                {formatBengaliNumber(allProducts.length)}টি
+                নিত্যপ্রয়োজনীয় পণ্যের দাম, একক ও দামের পরিবর্তন
+                এক জায়গায় দেখুন।
+              </p>
+            </div>
+
+            {allProducts.length > 0 ? (
+              <div className="grid grid-cols-3 gap-3 sm:gap-4">
+                {allProducts.map((product) => (
+                  <ProductCard
+                    key={product.slug}
+                    product={product}
+                  />
+                ))}
+              </div>
+            ) : (
+              <p className="rounded-xl bg-base-200 p-5 text-base-content/60">
+                এই মুহূর্তে কোনো পণ্যের তথ্য পাওয়া যায়নি।
+              </p>
+            )}
+          </section>
+        </>
+      )}
     </main>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-base-100 p-8">
+          <p className="text-center text-base-content/70">
+            পণ্যের তথ্য লোড হচ্ছে...
+          </p>
+        </main>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }

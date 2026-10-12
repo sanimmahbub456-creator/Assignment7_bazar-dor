@@ -1,94 +1,88 @@
+
 import Link from "next/link";
 import type { Product } from "@/types/product";
 
-interface ProductCardProps {
+type ProductCardProps = {
   product: Product;
-}
-
-const unitLabel: Record<Product["unit"], string> = {
-  kg: "কেজি",
-  litre: "লিটার",
-  dozen: "ডজন",
-  piece: "পিস",
 };
 
-function toBanglaNumber(value: number) {
-  const digits = "০১২৩৪৫৬৭৮৯";
+const unitLabels: Record<string, string> = {
+  kg: "প্রতি কেজি",
+  litre: "প্রতি লিটার",
+  dozen: "প্রতি ডজন",
+  piece: "প্রতি পিস",
+};
 
-  return value
-    .toString()
-    .replace(/\d/g, (digit) => digits[Number(digit)]);
+function formatBengaliNumber(value: number) {
+  return new Intl.NumberFormat("bn-BD", {
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
-export default function ProductCard({
-  product,
-}: ProductCardProps) {
-  const isUp = product.change.dir === "up";
-  const isDown = product.change.dir === "down";
-  const isFlat = product.change.dir === "flat";
+export default function ProductCard({ product }: ProductCardProps) {
+  const direction = product.change?.dir ?? "flat";
+  const percentage = product.change?.pct ?? 0;
+
+  const badgeStyle =
+    direction === "up"
+      ? "bg-success/10 text-success"
+      : direction === "down"
+        ? "bg-error/10 text-error"
+        : "bg-base-200 text-base-content/60";
+
+  const badgeIcon =
+    direction === "up" ? "▲" : direction === "down" ? "▼" : "—";
+
+  const unitLabel = unitLabels[product.unit] ?? `প্রতি ${product.unit}`;
+
+  const changeLabel =
+    direction === "up"
+      ? "দাম বেড়েছে"
+      : direction === "down"
+        ? "দাম কমেছে"
+        : "দামের পরিবর্তন নেই";
 
   return (
     <Link
-      href={`/product/${product.slug}`}
-      className="group block"
+      href={`/product/${encodeURIComponent(product.slug)}`}
+      aria-label={`${product.nameBn}, বিস্তারিত দেখুন`}
+      className="group flex h-full min-w-0 flex-col rounded-xl border border-base-300 bg-base-100 p-2.5 transition hover:border-primary/50 hover:shadow-md sm:p-4"
     >
-      <article className="h-full rounded-2xl border border-base-200 bg-base-100 p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
-
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-base-200 text-4xl">
-            {product.image}
-          </div>
-
-          <span className="rounded-full bg-base-200 px-3 py-1 text-xs font-medium">
-            {product.categoryNameBn}
-          </span>
+      {/* Product name and unit */}
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-base-200 text-lg sm:h-11 sm:w-11 sm:text-2xl">
+          {product.image || product.categoryIcon || "🛒"}
         </div>
 
-        <h3 className="text-lg font-bold group-hover:text-primary">
-          {product.nameBn}
-        </h3>
+        <div className="min-w-0 flex-1">
+          <h3 className="truncate text-xs font-bold text-base-content group-hover:text-primary sm:text-base">
+            {product.nameBn}
+          </h3>
 
-        <p className="mt-1 text-sm text-gray-500">
-          প্রতি {unitLabel[product.unit]}
-        </p>
-
-        <div className="mt-5">
-          <p className="text-sm text-gray-500">
-            আজকের দাম
+          <p className="mt-1 truncate text-xs text-base-content/60">
+            {unitLabel}
           </p>
+        </div>
+      </div>
 
-          <div className="mt-1 flex items-end gap-2">
-            <span className="text-3xl font-black">
-              ৳{toBanglaNumber(product.today)}
-            </span>
+      {/* Price and percentage change */}
+      <div className="mt-3 flex min-w-0 flex-wrap items-end justify-between gap-2 border-t border-base-200 pt-3">
+        <div className="min-w-0">
+          <p className="text-xs text-base-content/60">আজকের দাম</p>
 
-            <span className="mb-1 text-sm text-gray-500">
-              / {unitLabel[product.unit]}
-            </span>
-          </div>
+          <p className="mt-1 text-sm font-black text-base-content sm:text-lg">
+            ৳{formatBengaliNumber(product.today)}
+          </p>
         </div>
 
-        <div className="mt-4">
-          {isUp && (
-            <span className="inline-flex rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-              ▲ {toBanglaNumber(product.change.pct)}%
-            </span>
-          )}
-
-          {isDown && (
-            <span className="inline-flex rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-700">
-              ▼ {toBanglaNumber(Math.abs(product.change.pct))}%
-            </span>
-          )}
-
-          {isFlat && (
-            <span className="inline-flex rounded-full bg-gray-100 px-3 py-1 text-sm font-semibold text-gray-600">
-              — অপরিবর্তিত
-            </span>
-          )}
-        </div>
-
-      </article>
+        <span
+          title={changeLabel}
+          aria-label={`${changeLabel}: ${formatBengaliNumber(percentage)} শতাংশ`}
+          className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-bold ${badgeStyle}`}
+        >
+          {badgeIcon} {formatBengaliNumber(percentage)} শতাংশ
+        </span>
+      </div>
     </Link>
   );
 }

@@ -1,9 +1,13 @@
+
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
+
+type SocialProvider = "google" | "github";
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -12,229 +16,234 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] =
+    useState<SocialProvider | null>(null);
 
-  const handleSignUp = async (
-    event: React.FormEvent<HTMLFormElement>
-  ) => {
+  async function handleSignUp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError("");
 
-    const cleanName = name.trim();
-    const cleanEmail = email.trim();
-
-    if (!cleanName || !cleanEmail || !password) {
-      setError("সবগুলো তথ্য পূরণ করুন।");
+    if (!name.trim() || !email.trim() || !password || !confirmPassword) {
+      toast.error("সব তথ্য পূরণ করুন।");
       return;
     }
 
     if (password.length < 8) {
-      setError("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
+      toast.error("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("দুটি পাসওয়ার্ড মিলছে না।");
+      toast.error("দুটি পাসওয়ার্ড মিলছে না।");
       return;
     }
 
     setLoading(true);
 
     try {
-      const result = await authClient.signUp.email({
-        name: cleanName,
-        email: cleanEmail,
+      const { error } = await authClient.signUp.email({
+        name: name.trim(),
+        email: email.trim(),
         password,
       });
 
-      if (result.error) {
-        const authError = result.error;
-
-        console.error(
-          "SIGN UP ERROR DETAILS:",
-          JSON.stringify(authError, null, 2)
-        );
-
-        console.error("SIGN UP ERROR MESSAGE:", authError.message);
-        console.error("SIGN UP ERROR STATUS:", authError.status);
-        console.error("SIGN UP ERROR CODE:", authError.code);
-
-        setError(
-          authError.message ||
-            authError.code ||
-            "অ্যাকাউন্ট তৈরি করা যায়নি। আবার চেষ্টা করুন।"
-        );
-
+      if (error) {
+        toast.error(error.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
         return;
       }
 
-      console.log("SIGN UP SUCCESS");
-
-      router.push("/sign-in");
+      toast.success("অ্যাকাউন্ট সফলভাবে তৈরি হয়েছে!");
+      router.push("/");
       router.refresh();
-    } catch (err: unknown) {
-      console.error("SIGN UP EXCEPTION:", err);
-
-      if (err instanceof Error) {
-        setError(
-          `সমস্যা হয়েছে: ${err.message}`
-        );
-      } else {
-        setError(
-          "সার্ভারের সাথে যোগাযোগ করা যায়নি। আবার চেষ্টা করুন।"
-        );
-      }
+    } catch {
+      toast.error("সাইন আপ করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
     } finally {
       setLoading(false);
     }
-  };
+  }
+
+  async function handleSocialSignUp(provider: SocialProvider) {
+    setSocialLoading(provider);
+
+    try {
+      const { error } = await authClient.signIn.social({
+        provider,
+        callbackURL: "/",
+      });
+
+      if (error) {
+        toast.error(error.message || "সোশ্যাল সাইন আপ ব্যর্থ হয়েছে।");
+        setSocialLoading(null);
+      }
+    } catch {
+      toast.error("সোশ্যাল সাইন আপ করতে সমস্যা হয়েছে।");
+      setSocialLoading(null);
+    }
+  }
 
   return (
-    <main className="flex min-h-[75vh] items-center justify-center bg-base-200 px-4 py-12">
-      <div className="w-full max-w-md rounded-3xl bg-base-100 p-6 shadow-xl sm:p-8">
-        <div className="text-center">
-          <Link href="/" className="inline-block">
-            <span className="text-5xl">🛒</span>
-            <span className="mt-3 block text-2xl font-black">
-              বাজার দর
-            </span>
-          </Link>
+    <main className="flex min-h-screen items-center justify-center bg-base-200 px-3 py-8 sm:px-6">
+      <section className="w-full max-w-md rounded-2xl border border-base-300 bg-base-100 p-5 shadow-xl sm:p-8">
+        <h1 className="text-center text-2xl font-bold sm:text-3xl">
+          অ্যাকাউন্ট তৈরি করুন
+        </h1>
 
-          <h1 className="mt-6 text-2xl font-bold">
-            নতুন অ্যাকাউন্ট তৈরি করুন
-          </h1>
+        <p className="mt-2 text-center text-sm text-base-content/70">
+          বিনা খরচে সাইন আপ করে সব বিস্তারিত দাম দেখুন।
+        </p>
 
-          <p className="mt-2 text-sm text-gray-500">
-            আপনার অ্যাকাউন্ট তৈরি করে পণ্যের বিস্তারিত দেখুন।
-          </p>
-        </div>
-
-        <form onSubmit={handleSignUp} className="mt-8 space-y-5">
-          <div>
-            <label
-              htmlFor="name"
-              className="mb-2 block text-sm font-semibold"
-            >
-              আপনার নাম
+        <form onSubmit={handleSignUp} className="mt-6 space-y-4">
+          <div className="form-control">
+            <label htmlFor="signup-name" className="label">
+              <span className="label-text font-medium">আপনার নাম</span>
             </label>
 
             <input
-              id="name"
-              name="name"
+              id="signup-name"
               type="text"
+              autoComplete="name"
               placeholder="আপনার পূর্ণ নাম"
+              className="input input-bordered w-full"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              autoComplete="name"
               required
-              disabled={loading}
-              className="input input-bordered w-full"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="email"
-              className="mb-2 block text-sm font-semibold"
-            >
-              ইমেইল ঠিকানা
+          <div className="form-control">
+            <label htmlFor="signup-email" className="label">
+              <span className="label-text font-medium">ইমেইল</span>
             </label>
 
             <input
-              id="email"
-              name="email"
+              id="signup-email"
               type="email"
-              placeholder="name@example.com"
+              autoComplete="email"
+              placeholder="আপনার ইমেইল লিখুন"
+              className="input input-bordered w-full"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              autoComplete="email"
               required
-              disabled={loading}
-              className="input input-bordered w-full"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="mb-2 block text-sm font-semibold"
-            >
-              পাসওয়ার্ড
+          <div className="form-control">
+            <label htmlFor="signup-password" className="label">
+              <span className="label-text font-medium">পাসওয়ার্ড</span>
             </label>
 
             <input
-              id="password"
-              name="password"
+              id="signup-password"
               type="password"
+              autoComplete="new-password"
               placeholder="কমপক্ষে ৮ অক্ষর"
+              className="input input-bordered w-full"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              autoComplete="new-password"
               minLength={8}
               required
-              disabled={loading}
-              className="input input-bordered w-full"
             />
           </div>
 
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="mb-2 block text-sm font-semibold"
-            >
-              পাসওয়ার্ড নিশ্চিত করুন
+          <div className="form-control">
+            <label htmlFor="confirm-password" className="label">
+              <span className="label-text font-medium">
+                পাসওয়ার্ড নিশ্চিত করুন
+              </span>
             </label>
 
             <input
-              id="confirmPassword"
-              name="confirmPassword"
+              id="confirm-password"
               type="password"
-              placeholder="আবার পাসওয়ার্ড লিখুন"
-              value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
               autoComplete="new-password"
-              required
-              disabled={loading}
+              placeholder="আবার লিখুন"
               className="input input-bordered w-full"
+              value={confirmPassword}
+              onChange={(event) => setConfirmPassword(event.target.value)}
+              minLength={8}
+              required
             />
           </div>
-
-          {error && (
-            <div
-              role="alert"
-              className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
-            >
-              <p className="font-semibold">
-                অ্যাকাউন্ট তৈরি করা যায়নি
-              </p>
-              <p className="mt-1 break-words">{error}</p>
-            </div>
-          )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || socialLoading !== null}
             className="btn btn-primary w-full"
           >
-            {loading ? (
-              <>
-                <span className="loading loading-spinner loading-sm" />
-                অ্যাকাউন্ট তৈরি হচ্ছে...
-              </>
-            ) : (
-              "অ্যাকাউন্ট তৈরি করুন"
-            )}
+            {loading ? "অ্যাকাউন্ট তৈরি হচ্ছে..." : "সাইন আপ করুন"}
           </button>
         </form>
 
-        <div className="divider my-6">অথবা</div>
+        <div className="divider my-5 text-xs text-base-content/60">
+          অথবা
+        </div>
 
-        <p className="text-center text-sm text-gray-600">
-          ইতিমধ্যে অ্যাকাউন্ট আছে?{" "}
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => handleSocialSignUp("google")}
+            disabled={loading || socialLoading !== null}
+            className="btn btn-outline flex h-11 min-h-11 w-full min-w-0 flex-nowrap items-center justify-center gap-1 overflow-hidden px-1 text-[10px] font-medium normal-case sm:gap-1.5 sm:px-2 sm:text-xs"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 48 48"
+              className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
+              aria-hidden="true"
+            >
+              <path
+                fill="#EA4335"
+                d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"
+                transform="translate(0 4)"
+              />
+              <path
+                fill="#4285F4"
+                d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.72 7.18l7.62 5.91c4.45-4.11 7.14-10.17 7.14-17.56Z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.52 2.56 10.78l7.97-6.19Z"
+                transform="translate(0 4)"
+              />
+              <path
+                fill="#34A853"
+                d="M24 48c6.48 0 11.93-2.13 15.91-5.79l-7.62-5.91c-2.12 1.42-4.84 2.2-8.29 2.2-6.26 0-11.57-4.22-13.46-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48Z"
+              />
+            </svg>
+
+            <span className="whitespace-nowrap">
+              {socialLoading === "google"
+                ? "অপেক্ষা করুন..."
+                : "Google দিয়ে চালিয়ে যান"}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleSocialSignUp("github")}
+            disabled={loading || socialLoading !== null}
+            className="btn btn-outline flex h-11 min-h-11 w-full min-w-0 flex-nowrap items-center justify-center gap-1 overflow-hidden px-1 text-[10px] font-medium normal-case sm:gap-1.5 sm:px-2 sm:text-xs"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              className="h-4 w-4 shrink-0 sm:h-5 sm:w-5"
+              aria-hidden="true"
+            >
+              <path d="M12 .75a11.25 11.25 0 0 0-3.56 21.92c.56.1.77-.24.77-.54v-2.1c-3.14.68-3.8-1.33-3.8-1.33-.51-1.3-1.25-1.65-1.25-1.65-1.03-.7.08-.69.08-.69 1.14.08 1.74 1.17 1.74 1.17 1.01 1.73 2.65 1.23 3.3.94.1-.73.4-1.23.72-1.51-2.51-.29-5.15-1.26-5.15-5.6 0-1.24.44-2.25 1.17-3.04-.12-.29-.51-1.44.11-3 0 0 .95-.3 3.1 1.16a10.8 10.8 0 0 1 5.64 0c2.15-1.46 3.1-1.16 3.1-1.16.62 1.56.23 2.71.11 3 .73.79 1.17 1.8 1.17 3.04 0 4.35-2.65 5.3-5.18 5.59.41.35.77 1.04.77 2.1v3.08c0 .3.2.65.78.54A11.25 11.25 0 0 0 12 .75Z" />
+            </svg>
+
+            <span className="whitespace-nowrap">
+              {socialLoading === "github"
+                ? "অপেক্ষা করুন..."
+                : "GitHub দিয়ে চালিয়ে যান"}
+            </span>
+          </button>
+        </div>
+
+        <p className="mt-6 text-center text-sm">
+          আগে থেকেই অ্যাকাউন্ট আছে?{" "}
           <Link
             href="/sign-in"
             className="font-semibold text-primary hover:underline"
@@ -243,15 +252,15 @@ export default function SignUpPage() {
           </Link>
         </p>
 
-        <p className="mt-5 text-center">
+        <div className="mt-4 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-500 hover:text-primary"
+            className="text-sm text-base-content/70 hover:underline"
           >
-            ← হোম পেজে ফিরে যান
+            ← হোমপেজে ফিরে যান
           </Link>
-        </p>
-      </div>
+        </div>
+      </section>
     </main>
   );
 }
