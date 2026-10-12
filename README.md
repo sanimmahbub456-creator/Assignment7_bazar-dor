@@ -181,4 +181,4 @@ and detail views should remain usable across screen sizes.
 এই অ্যাপের দামকে বাজারের নিশ্চিত বা সরকারি মূল্য হিসেবে বিবেচনা করবেন না।
 
 ## 📄 License
-See [LICENSE](bazardor/LICENSE.md) for license information
+See [LICENSE(bazar-dor\LICENSE.md)] for license information
