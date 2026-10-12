@@ -180,5 +180,5 @@ and detail views should remain usable across screen sizes.
 **সকল দাম সম্ভাব্য; বাজারের অবস্থা, স্থান ও সময় অনুযায়ী পরিবর্তিত হতে পারে।**
 এই অ্যাপের দামকে বাজারের নিশ্চিত বা সরকারি মূল্য হিসেবে বিবেচনা করবেন না।
 
-## 📄 License
-See [LICENSE(bazar-dor\LICENSE.md)] for license information
+## License
+See the [LICENSE](LICENSE) file.
